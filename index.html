@@ -56,8 +56,7 @@
       </ul>
       <div class="hero__cta">
         <button type="button" class="btn btn--light" id="cta-menu" data-t="orderNow"></button>
-        <!-- swap href for the real number -->
-        <a class="btn btn--ghost btn--icon" href="tel:+972400000000" aria-label="Call">
+        <a class="btn btn--ghost btn--icon" href="tel:+97246426033" aria-label="Call">
           <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="6" y="2.2" width="8" height="15.6" rx="2"/><path d="M8.8 15.2h2.4"/></svg>
         </a>
       </div>
@@ -86,7 +85,7 @@
     <div class="display foot__name" data-t="brand"></div>
     <p><span data-t="address"></span><br><span data-t="hours"></span></p>
     <div class="foot__links">
-      <a class="btn btn--ghost" href="tel:+972400000000">
+      <a class="btn btn--ghost" href="tel:+97246426033">
         <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="6" y="2.2" width="8" height="15.6" rx="2"/><path d="M8.8 15.2h2.4"/></svg>
         <span data-t="call"></span>
       </a>
@@ -161,6 +160,10 @@
 <!-- ============ DRINKS ============ -->
 <section class="screen" id="screen-drinks" hidden>
   <div class="pad">
+    <button type="button" class="linkback" data-go="home">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg>
+      <span data-t="back"></span>
+    </button>
     <p class="step" data-t="stepDrinks"></p>
     <h2 class="display" data-t="drinksTitle"></h2>
     <p class="muted" data-t="drinksSub"></p>
@@ -202,6 +205,13 @@
 
     <h3 class="q"><span data-t="addressQ"></span></h3>
     <input class="field" id="address" type="text" autocomplete="street-address">
+
+    <h3 class="q"><span data-t="customerNameQ"></span></h3>
+    <input class="field" id="customer-name" type="text" autocomplete="name">
+
+    <h3 class="q"><span data-t="customerPhoneQ"></span></h3>
+    <input class="field" id="customer-phone" type="tel" autocomplete="tel" inputmode="tel">
+
     <button type="button" class="option waze" id="waze">
       <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17.5s5.4-5 5.4-9a5.4 5.4 0 10-10.8 0c0 4 5.4 9 5.4 9z"/><circle cx="10" cy="8.4" r="2"/></svg>
       <span class="option__text"><strong id="waze-title"></strong><small id="waze-sub"></small></span>
@@ -210,6 +220,23 @@
 
     <h3 class="q"><span data-t="payQ"></span></h3>
     <div class="stack" id="payments"></div>
+
+    <div class="stack" id="card-details" hidden>
+      <h3 class="q"><span data-t="cardHolderQ"></span></h3>
+      <input class="field" id="card-name" type="text" autocomplete="cc-name">
+      <h3 class="q"><span data-t="cardNumberQ"></span></h3>
+      <input class="field" id="card-number" type="text" inputmode="numeric" autocomplete="cc-number">
+      <div class="grid2 gap-s">
+        <div>
+          <h3 class="q"><span data-t="expiryQ"></span></h3>
+          <input class="field" id="card-expiry" type="text" inputmode="numeric" autocomplete="cc-exp">
+        </div>
+        <div>
+          <h3 class="q"><span data-t="cvvQ"></span></h3>
+          <input class="field" id="card-cvv" type="password" inputmode="numeric" autocomplete="cc-csc">
+        </div>
+      </div>
+    </div>
 
     <dl class="totals" id="totals-checkout"></dl>
   </div>
