@@ -12,7 +12,7 @@
     cat: 'shawarma',
     itemId: null,
     bread: 'laffa',
-    salads: ['hummus', 'tahina', 'pickles'],
+    salads: ['hummus', 'tahina', 'corn'],
     extras: [],
     qty: 1,
     pendingSides: [],
@@ -20,6 +20,8 @@
     pay: null,
     wazeSent: false,
     orderNo: CONFIG.firstOrderNo,
+    boxSize: 'small',
+    saladBoxChoice: null,
   };
 
   function pickLang() {
@@ -63,6 +65,12 @@
     });
     $('#note').placeholder = t(T.notePlaceholder);
     $('#address').placeholder = t(T.addressPlaceholder);
+    $('#customer-name').placeholder = t(T.customerNamePlaceholder);
+    $('#customer-phone').placeholder = t(T.customerPhonePlaceholder);
+    $('#card-name').placeholder = t(T.cardHolderPlaceholder);
+    $('#card-number').placeholder = t(T.cardNumberPlaceholder);
+    $('#card-expiry').placeholder = t(T.expiryPlaceholder);
+    $('#card-cvv').placeholder = t(T.cvvPlaceholder);
   }
 
   /* ---------- screens ---------- */
@@ -97,6 +105,27 @@
     $('#cat-title').textContent = t((CATS.find((c) => c.id === state.cat) || CATS[0]).name);
     const list = $('#menu');
     list.innerHTML = '';
+
+    if (state.cat === 'salad-boxes') {
+      SALADS.forEach((s) => {
+        const li = el('li');
+        const b = el('button', 'dish');
+        b.type = 'button';
+        b.innerHTML =
+          `<span class="dish__thumb">${photo(s.photo, t(s.name))}</span>` +
+          `<span class="dish__body">` +
+          `<span class="dish__title"><strong>${t(s.name)}</strong></span>` +
+          `<span class="dish__desc">${t(T.saladsQ)}</span>` +
+          `<span class="price">${t(T.saladsFree)}</span>` +
+          `</span>` +
+          `<span class="dish__add">${ICON.plus}</span>`;
+        b.onclick = () => openSaladBoxPicker(s.id);
+        li.appendChild(b);
+        list.appendChild(li);
+      });
+      return;
+    }
+
     ITEMS.filter((i) => i.cat === state.cat).forEach((i) => {
       const li = el('li');
       const b = el('button', 'dish');
@@ -139,9 +168,38 @@
     return ITEMS.find((i) => i.id === state.itemId) || null;
   }
 
+  function addDirectItem(item) {
+    state.cart.push({
+      key: item.id + '-' + Date.now(),
+      name: item.name,
+      photo: item.photo,
+      unit: item.price,
+      qty: 1,
+      parts: [L('סלטים', 'سلطات', 'Salads')],
+      kind: 'salad-box',
+    });
+    renderCart();
+    show('cart');
+  }
+
+  function openSaladBoxPicker(saladId) {
+    state.itemId = '__salad-box__';
+    state.saladBoxChoice = saladId;
+    state.boxSize = 'small';
+    $('#note').value = '';
+    renderItem();
+    show('item');
+  }
+
   function openItem(id) {
+    const item = ITEMS.find((i) => i.id === id);
+    if (!item) return;
+    if (item.builder === false) {
+      addDirectItem(item);
+      return;
+    }
     Object.assign(state, {
-      itemId: id, bread: 'laffa', salads: ['hummus', 'tahina', 'pickles'],
+      itemId: id, bread: 'laffa', salads: ['hummus', 'tahina', 'corn'],
       extras: [], qty: 1, pendingSides: [],
     });
     $('#note').value = '';
@@ -150,6 +208,11 @@
   }
 
   function unitPrice() {
+    if (state.itemId === '__salad-box__') {
+      const salad = SALADS.find((s) => s.id === state.saladBoxChoice) || SALADS[0];
+      const sizePrice = { small: 24, big: 32, 'small-dahi': 30 }[state.boxSize] || 24;
+      return sizePrice;
+    }
     const it = currentItem();
     if (!it) return 0;
     const bread = BREADS.find((b) => b.id === state.bread);
@@ -163,6 +226,38 @@
   }
 
   function renderItem() {
+    if (state.itemId === '__salad-box__') {
+      const salad = SALADS.find((s) => s.id === state.saladBoxChoice) || SALADS[0];
+      const boxSizes = [
+        { id: 'small', label: L('קטן', 'صغير', 'Small'), price: 24 },
+        { id: 'big', label: L('גדול', 'كبير', 'Large'), price: 32 },
+        { id: 'small-dahi', label: L('קטן + דהין', 'صغير + دحين', 'Small + dahi'), price: 30 },
+      ];
+
+      $('#item-photo').outerHTML = '<div class="photo photo--flat" id="item-photo"></div>';
+      $('#item-name').textContent = t(salad.name);
+      $('#item-price').textContent = money(boxSizes.find((b) => b.id === state.boxSize)?.price || 24);
+      $('#item-desc').textContent = t(T.saladsQ);
+
+      const breads = $('#breads');
+      breads.innerHTML = '';
+      boxSizes.forEach((size) => {
+        const n = el('button', 'bread',
+          `<span class="bread__sw"></span><span><strong>${t(size.label)}</strong>` +
+          `<span>${'+' + money(size.price)}</span></span>`);
+        n.type = 'button';
+        n.setAttribute('aria-pressed', String(state.boxSize === size.id));
+        n.onclick = () => { state.boxSize = size.id; renderItem(); };
+        breads.appendChild(n);
+      });
+
+      $('#salads').innerHTML = '';
+      $('#extras').innerHTML = '';
+      $('#qty').textContent = state.qty;
+      $('#item-total').textContent = money(unitPrice() * state.qty);
+      return;
+    }
+
     const it = currentItem();
     if (!it) return;
     $('#item-photo').outerHTML = it.photo
@@ -235,6 +330,24 @@
   }
 
   function commitItem(withSides) {
+    if (state.itemId === '__salad-box__') {
+      const salad = SALADS.find((s) => s.id === state.saladBoxChoice) || SALADS[0];
+      const size = { small: L('קטן', 'صغير', 'Small'), big: L('גדול', 'كبير', 'Large'), 'small-dahi': L('קטן + דהין', 'صغير + دحين', 'Small + dahi') }[state.boxSize] || L('קטן', 'صغير', 'Small');
+      state.cart.push({
+        key: 'salad-box-' + salad.id + '-' + Date.now(),
+        name: salad.name,
+        photo: salad.photo,
+        unit: unitPrice(),
+        qty: state.qty,
+        parts: [size],
+        kind: 'salad-box',
+      });
+      state.pendingSides = [];
+      renderCart();
+      show('cart');
+      return;
+    }
+
     const it = currentItem();
     if (!it) return;
     const bread = BREADS.find((b) => b.id === state.bread);
@@ -342,6 +455,7 @@
   /* ---------- checkout ---------- */
   function renderPayments() {
     const wrap = $('#payments');
+    const cardDetails = $('#card-details');
     wrap.innerHTML = '';
     [
       { id: 'card', name: T.payCard, sub: T.payCardSub, icon: ICON.card },
@@ -356,11 +470,21 @@
       n.onclick = () => { state.pay = p.id; renderPayments(); renderPlace(); };
       wrap.appendChild(n);
     });
+    cardDetails.hidden = state.pay !== 'card';
   }
 
   function renderPlace() {
     const b = $('#place');
-    b.disabled = !state.pay;
+    const customerName = $('#customer-name').value.trim();
+    const customerPhone = $('#customer-phone').value.trim();
+    const cardName = $('#card-name').value.trim();
+    const cardNumber = $('#card-number').value.trim();
+    const cardExpiry = $('#card-expiry').value.trim();
+    const cardCvv = $('#card-cvv').value.trim();
+    const cardReady = !!cardName && !!cardNumber && !!cardExpiry && !!cardCvv;
+    const ready = !!customerName && !!customerPhone && state.pay && (state.pay === 'cash' || cardReady);
+
+    b.disabled = !ready;
     b.textContent = state.pay ? t(T.place) : t(T.placeNeedsPay);
   }
 
@@ -406,6 +530,12 @@
     state.cart = []; state.pay = null; state.wazeSent = false;
     state.coords = null; state.wazeLink = null; state.orderNo += 1;
     $('#address').value = '';
+    $('#customer-name').value = '';
+    $('#customer-phone').value = '';
+    $('#card-name').value = '';
+    $('#card-number').value = '';
+    $('#card-expiry').value = '';
+    $('#card-cvv').value = '';
     renderCart(); renderPayments(); renderPlace(); renderWaze();
     show('home');
   }
@@ -433,6 +563,12 @@
   $('#to-sides').onclick = () => { renderSides(); show('sides'); };
   $('#skip-sides').onclick = () => commitItem(false);
   $('#confirm-sides').onclick = () => commitItem(true);
+  $('#customer-name').oninput = renderPlace;
+  $('#customer-phone').oninput = renderPlace;
+  $('#card-name').oninput = renderPlace;
+  $('#card-number').oninput = renderPlace;
+  $('#card-expiry').oninput = renderPlace;
+  $('#card-cvv').oninput = renderPlace;
   $('#waze').onclick = sendLocation;
   $('#place').onclick = placeOrder;
   $('#reset').onclick = reset;
