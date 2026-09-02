@@ -25,8 +25,8 @@
   };
 
   function pickLang() {
-    const l = (navigator.language || 'he').slice(0, 2).toLowerCase();
-    return l === 'ar' ? 'ar' : l === 'en' ? 'en' : 'he';
+    const locale = (navigator.language || '').toLowerCase();
+    return locale.startsWith('he') ? 'he' : 'ar';
   }
 
   /* ---------- helpers ---------- */
@@ -541,6 +541,19 @@
   }
 
   /* ---------- wiring ---------- */
+  let lastTouchEnd = 0;
+  document.addEventListener('touchmove', (event) => {
+    if (event.touches.length > 1) event.preventDefault();
+  }, { passive: false });
+  document.addEventListener('gesturestart', (event) => event.preventDefault());
+  document.addEventListener('gesturechange', (event) => event.preventDefault());
+  document.addEventListener('gestureend', (event) => event.preventDefault());
+  document.addEventListener('touchend', (event) => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) event.preventDefault();
+    lastTouchEnd = now;
+  }, { passive: false });
+
   document.querySelectorAll('.lang button').forEach((b) => {
     b.onclick = () => {
       state.lang = b.dataset.lang;
