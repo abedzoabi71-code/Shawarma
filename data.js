@@ -17,7 +17,6 @@ const CATS = [
   { id: 'grill',    name: L('על האש', 'مشاوي', 'From the grill') },
   { id: 'falafel',  name: L('פלאפל וצמחוני', 'فلافل ونباتي', 'Falafel & veg') },
   { id: 'salad-boxes', name: L('סלטים', 'سلطات', 'Salad boxes') },
-  { id: 'sides',    name: L('תוספות', 'إضافات', 'Sides') },
   { id: 'drinks',   name: L('שתייה', 'مشروبات', 'Drinks') }, // opens the drinks screen
 ];
 
@@ -35,9 +34,6 @@ const ITEMS = [
   { id:'falafel', cat:'falafel', price:34, photo:'',
     name:L('פלאפל','فلافل','Falafel'),
     desc:L('מטוגן במקום, שמונה כדורים','يُقلى في المكان، ثمان حبات','Fried to order, eight balls') },
-  { id:'hummus', cat:'sides', price:28, photo:'',
-    name:L('חומוס פול','حمص فول','Hummus ful'),
-    desc:L('עם פיתה חמה','مع خبز ساخن','With hot pita') },
   { id:'salad-box-s', cat:'salad-boxes', price:24, photo:'', tag:L('קטן','صغير','Small'), builder:false,
     name:L('קופסת סלט קטנה','علبة سلطة صغيرة','Small salad box'),
     desc:L('מבחר סלטים ביתיים','اختيار سلطات منزلية','House salads selection') },
@@ -47,9 +43,6 @@ const ITEMS = [
   { id:'salad-box-dahi', cat:'salad-boxes', price:30, photo:'', tag:L('קטן + דהין','صغير + دحين','Small + dahi'), builder:false,
     name:L('קופסת סלט קטנה עם דהין','علبة سلطة صغيرة مع دحين','Small salad box with dahi'),
     desc:L('קטן, עם דהין במרכז','صغير، مع دحين في الوسط','Small, with dahi in the middle') },
-  { id:'fries', cat:'sides', price:18, photo:'',
-    name:L('צ׳יפס','بطاطا مقلية','Fries'),
-    desc:L('מנה גדולה','حصة كبيرة','Large portion') },
 ];
 
 /* offered right after "add to order" */
