@@ -1,6 +1,6 @@
 /* =========================================================
    App logic. Vanilla JS, no dependencies.
-   Screens: home → item → sides → cart → (drinks) → checkout → done
+   Screens: home → item → cart → (drinks) → checkout → done
    ========================================================= */
 (function () {
   'use strict';
@@ -9,19 +9,16 @@
   const state = {
     lang: pickLang(),
     screen: 'home',
-    cat: 'shawarma',
+    cat: 'meat',
     itemId: null,
     bread: 'laffa',
     salads: ['hummus', 'tahina', 'corn'],
     extras: [],
     qty: 1,
-    pendingSides: [],
     cart: [],
     pay: null,
     wazeSent: false,
     orderNo: CONFIG.firstOrderNo,
-    boxSize: 'small',
-    saladBoxChoice: null,
   };
 
   function pickLang() {
@@ -106,30 +103,14 @@
     const list = $('#menu');
     list.innerHTML = '';
 
-    if (state.cat === 'salad-boxes') {
-      SALADS.forEach((s) => {
-        const li = el('li');
-        const b = el('button', 'dish');
-        b.type = 'button';
-        b.innerHTML =
-          `<span class="dish__thumb">${photo(s.photo, t(s.name))}</span>` +
-          `<span class="dish__body">` +
-          `<span class="dish__title"><strong>${t(s.name)}</strong></span>` +
-          `<span class="dish__desc">${t(T.saladsQ)}</span>` +
-          `<span class="price">${t(T.saladsFree)}</span>` +
-          `</span>` +
-          `<span class="dish__add">${ICON.plus}</span>`;
-        b.onclick = () => openSaladBoxPicker(s.id);
-        li.appendChild(b);
-        list.appendChild(li);
-      });
-      return;
-    }
-
     ITEMS.filter((i) => i.cat === state.cat).forEach((i) => {
       const li = el('li');
       const b = el('button', 'dish');
       b.type = 'button';
+      const inCart = i.direct && state.cart.find((l) => l.key === 'direct-' + i.id);
+      const priceText = i.direct
+        ? money(i.price)
+        : (breadKeys(i).length > 1 ? t(T.from) : '') + money(Math.min(...Object.values(i.prices)));
       b.innerHTML =
         `<span class="dish__thumb">${photo(i.photo, t(i.name))}</span>` +
         `<span class="dish__body">` +
@@ -137,13 +118,23 @@
         (i.tag ? `<span class="tag">${t(i.tag)}</span>` : '') +
         `</span>` +
         `<span class="dish__desc">${t(i.desc)}</span>` +
-        `<span class="price">${money(i.price)}</span>` +
+        `<span class="price">${priceText}</span>` +
         `</span>` +
-        `<span class="dish__add">${ICON.plus}</span>`;
-      b.onclick = () => openItem(i.id);
+        `<span class="dish__add">${inCart ? inCart.qty : ICON.plus}</span>`;
+      b.onclick = i.direct ? () => addDirect(i) : () => openItem(i.id);
       li.appendChild(b);
       list.appendChild(li);
     });
+  }
+
+  /* items with no options (take-away salads, fries): one tap adds one to the cart */
+  function addDirect(item) {
+    const key = 'direct-' + item.id;
+    const line = state.cart.find((l) => l.key === key);
+    if (line) line.qty += 1;
+    else state.cart.push({ key, name: item.name, photo: item.photo, unit: item.price, qty: 1, parts: [], kind: 'side' });
+    renderMenu();
+    renderCart();
   }
 
   function renderStatic() {
@@ -168,39 +159,18 @@
     return ITEMS.find((i) => i.id === state.itemId) || null;
   }
 
-  function addDirectItem(item) {
-    state.cart.push({
-      key: item.id + '-' + Date.now(),
-      name: item.name,
-      photo: item.photo,
-      unit: item.price,
-      qty: 1,
-      parts: [L('סלטים', 'سلطات', 'Salads')],
-      kind: 'salad-box',
-    });
-    renderCart();
-    show('cart');
-  }
-
-  function openSaladBoxPicker(saladId) {
-    state.itemId = '__salad-box__';
-    state.saladBoxChoice = saladId;
-    state.boxSize = 'small';
-    $('#note').value = '';
-    renderItem();
-    show('item');
+  /* serving formats an item is sold in (keys of its prices), in menu-board order */
+  function breadKeys(item) {
+    return BREADS.map((b) => b.id).filter((id) => item.prices && item.prices[id] != null);
   }
 
   function openItem(id) {
     const item = ITEMS.find((i) => i.id === id);
     if (!item) return;
-    if (item.builder === false) {
-      addDirectItem(item);
-      return;
-    }
+    const keys = breadKeys(item);
     Object.assign(state, {
-      itemId: id, bread: 'laffa', salads: ['hummus', 'tahina', 'corn'],
-      extras: [], qty: 1, pendingSides: [],
+      itemId: id, bread: keys.includes('laffa') ? 'laffa' : keys[0], salads: ['hummus', 'tahina', 'corn'],
+      extras: [], qty: 1,
     });
     $('#note').value = '';
     renderItem();
@@ -208,16 +178,10 @@
   }
 
   function unitPrice() {
-    if (state.itemId === '__salad-box__') {
-      const salad = SALADS.find((s) => s.id === state.saladBoxChoice) || SALADS[0];
-      const sizePrice = { small: 24, big: 32, 'small-dahi': 30 }[state.boxSize] || 24;
-      return sizePrice;
-    }
     const it = currentItem();
     if (!it) return 0;
-    const bread = BREADS.find((b) => b.id === state.bread);
     const extras = EXTRAS.filter((e) => state.extras.includes(e.id)).reduce((a, e) => a + e.price, 0);
-    return it.price + (bread ? bread.extra : 0) + extras;
+    return it.prices[state.bread] + extras;
   }
 
   function toggle(list, id) {
@@ -226,53 +190,21 @@
   }
 
   function renderItem() {
-    if (state.itemId === '__salad-box__') {
-      const salad = SALADS.find((s) => s.id === state.saladBoxChoice) || SALADS[0];
-      const boxSizes = [
-        { id: 'small', label: L('קטן', 'صغير', 'Small'), price: 24 },
-        { id: 'big', label: L('גדול', 'كبير', 'Large'), price: 32 },
-        { id: 'small-dahi', label: L('קטן + דהין', 'صغير + دحين', 'Small + dahi'), price: 30 },
-      ];
-
-      $('#item-photo').outerHTML = '<div class="photo photo--flat" id="item-photo"></div>';
-      $('#item-name').textContent = t(salad.name);
-      $('#item-price').textContent = money(boxSizes.find((b) => b.id === state.boxSize)?.price || 24);
-      $('#item-desc').textContent = t(T.saladsQ);
-
-      const breads = $('#breads');
-      breads.innerHTML = '';
-      boxSizes.forEach((size) => {
-        const n = el('button', 'bread',
-          `<span class="bread__sw"></span><span><strong>${t(size.label)}</strong>` +
-          `<span>${'+' + money(size.price)}</span></span>`);
-        n.type = 'button';
-        n.setAttribute('aria-pressed', String(state.boxSize === size.id));
-        n.onclick = () => { state.boxSize = size.id; renderItem(); };
-        breads.appendChild(n);
-      });
-
-      $('#salads').innerHTML = '';
-      $('#extras').innerHTML = '';
-      $('#qty').textContent = state.qty;
-      $('#item-total').textContent = money(unitPrice() * state.qty);
-      return;
-    }
-
     const it = currentItem();
     if (!it) return;
     $('#item-photo').outerHTML = it.photo
       ? `<img id="item-photo" src="${it.photo}" alt="${t(it.name)}">`
       : '<div class="photo photo--flat" id="item-photo"></div>';
     $('#item-name').textContent = t(it.name);
-    $('#item-price').textContent = money(it.price);
+    $('#item-price').textContent = money(it.prices[state.bread]);
     $('#item-desc').textContent = t(it.desc);
 
     const breads = $('#breads');
     breads.innerHTML = '';
-    BREADS.forEach((b) => {
+    BREADS.filter((b) => it.prices[b.id] != null).forEach((b) => {
       const n = el('button', 'bread',
         `<span class="bread__sw"></span><span><strong>${t(b.name)}</strong>` +
-        `<span>${b.extra ? '+' + money(b.extra) : t(T.noCharge)}</span></span>`);
+        `<span>${money(it.prices[b.id])}</span></span>`);
       n.type = 'button';
       n.setAttribute('aria-pressed', String(state.bread === b.id));
       n.onclick = () => { state.bread = b.id; renderItem(); };
@@ -309,45 +241,7 @@
     $('#item-total').textContent = money(unitPrice() * state.qty);
   }
 
-  /* ---------- sides upsell ---------- */
-  function renderSides() {
-    const wrap = $('#sides');
-    wrap.innerHTML = '';
-    SIDES.forEach((s) => {
-      const n = el('button', 'option',
-        `<span class="option__thumb">${photo(s.photo, t(s.name))}</span>` +
-        `<span class="option__text"><strong>${t(s.name)}</strong><small>${t(s.desc)}</small>` +
-        `<strong class="option__price">+${money(s.price)}</strong></span>` +
-        `<span class="option__box">${ICON.check}</span>`);
-      n.type = 'button';
-      n.setAttribute('aria-pressed', String(state.pendingSides.includes(s.id)));
-      n.onclick = () => { toggle(state.pendingSides, s.id); renderSides(); };
-      wrap.appendChild(n);
-    });
-    const total = SIDES.filter((s) => state.pendingSides.includes(s.id)).reduce((a, s) => a + s.price, 0);
-    $('#sides-total').textContent = money(total);
-    $('#sides-cta').textContent = state.pendingSides.length ? t(T.addSides) : t(T.addToCart);
-  }
-
-  function commitItem(withSides) {
-    if (state.itemId === '__salad-box__') {
-      const salad = SALADS.find((s) => s.id === state.saladBoxChoice) || SALADS[0];
-      const size = { small: L('קטן', 'صغير', 'Small'), big: L('גדול', 'كبير', 'Large'), 'small-dahi': L('קטן + דהין', 'صغير + دحين', 'Small + dahi') }[state.boxSize] || L('קטן', 'صغير', 'Small');
-      state.cart.push({
-        key: 'salad-box-' + salad.id + '-' + Date.now(),
-        name: salad.name,
-        photo: salad.photo,
-        unit: unitPrice(),
-        qty: state.qty,
-        parts: [size],
-        kind: 'salad-box',
-      });
-      state.pendingSides = [];
-      renderCart();
-      show('cart');
-      return;
-    }
-
+  function commitItem() {
     const it = currentItem();
     if (!it) return;
     const bread = BREADS.find((b) => b.id === state.bread);
@@ -361,15 +255,6 @@
       key: it.id + '-' + Date.now(), name: it.name, photo: it.photo,
       unit: unitPrice(), qty: state.qty, parts, note,
     });
-    if (withSides) {
-      SIDES.filter((s) => state.pendingSides.includes(s.id)).forEach((s) => {
-        state.cart.push({
-          key: 'side-' + s.id + '-' + Date.now(), name: s.name, photo: s.photo,
-          unit: s.price, qty: 1, parts: [], kind: 'side',
-        });
-      });
-    }
-    state.pendingSides = [];
     renderCart();
     show('cart');
   }
@@ -558,7 +443,7 @@
     b.onclick = () => {
       state.lang = b.dataset.lang;
       applyLang(); renderCats(); renderMenu(); renderStatic();
-      renderItem(); renderSides(); renderDrinks(); renderCart();
+      renderItem(); renderDrinks(); renderCart();
       renderPayments(); renderPlace(); renderWaze();
     };
   });
@@ -573,9 +458,7 @@
   $('#cta-menu').onclick = () => $('#cats').scrollIntoView({ behavior: 'smooth', block: 'start' });
   $('#qty-minus').onclick = () => { state.qty = Math.max(1, state.qty - 1); renderItem(); };
   $('#qty-plus').onclick = () => { state.qty += 1; renderItem(); };
-  $('#to-sides').onclick = () => { renderSides(); show('sides'); };
-  $('#skip-sides').onclick = () => commitItem(false);
-  $('#confirm-sides').onclick = () => commitItem(true);
+  $('#to-sides').onclick = commitItem;
   $('#customer-name').oninput = renderPlace;
   $('#customer-phone').oninput = renderPlace;
   $('#card-name').oninput = renderPlace;
@@ -589,7 +472,7 @@
   /* ---------- boot ---------- */
   applyLang();
   renderCats(); renderMenu(); renderStatic();
-  renderSides(); renderDrinks(); renderCart();
+  renderDrinks(); renderCart();
   renderPayments(); renderPlace(); renderWaze();
   show('home');
 })();
