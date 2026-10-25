@@ -13,64 +13,88 @@ const CONFIG = {
 };
 
 const CATS = [
-  { id: 'shawarma', name: L('שווארמה', 'شاورما', 'Shawarma') },
-  { id: 'grill',    name: L('על האש', 'مشاوي', 'From the grill') },
-  { id: 'falafel',  name: L('פלאפל וצמחוני', 'فلافل ونباتي', 'Falafel & veg') },
-  { id: 'salad-boxes', name: L('סלטים', 'سلطات', 'Salad boxes') },
-  { id: 'drinks',   name: L('שתייה', 'مشروبات', 'Drinks') }, // opens the drinks screen
+  { id: 'meat',    name: L('שווארמה ובשר', 'شاورما ولحوم', 'Shawarma & meat') },
+  { id: 'chicken', name: L('עוף', 'دجاج', 'Chicken') },
+  { id: 'sides',   name: L('פלאפל, סלטים וצ׳יפס', 'فلافل وسلطات وشيبس', 'Falafel, salads & fries') },
+  { id: 'drinks',  name: L('שתייה', 'مشروبات', 'Drinks') }, // opens the drinks screen
 ];
+
+const TAKEAWAY = L('לקחת', 'سفري', 'Take-away');
+const DESC_TAKEAWAY = L('לקחת', 'سفري', 'To go');
+const DESC_FORMATS = L('בפיתה, באגט, לאפה או מגש', 'بخبز بيتا أو باچيت أو لافة أو طبق', 'In pita, baguette, laffa or on a plate');
 
 /* photo: put a file in images/ and set it here, e.g. 'images/kabab.jpg' */
 const ITEMS = [
-  { id:'sh-lamb', cat:'shawarma', price:68, photo:'',
-    name:L('שווארמה כבש','شاورما لحم غنم','Lamb shawarma'),
-    desc:L('כבש טרי, נחתך לפי הזמנה','لحم غنم طازج يُقطع عند الطلب','Fresh lamb, carved to order') },
-  { id:'kabab', cat:'grill', price:56, photo:'', tag:L('על הגחלים','على الفحم','Charcoal'),
-    name:L('קבב','كباب','Kabab'),
-    desc:L('בשר טחון עם פטרוזיליה, על גחלים','لحم مفروم مع بقدونس على الفحم','Minced meat with parsley, over coals') },
-  { id:'shishlik', cat:'grill', price:64, photo:'',
-    name:L('שישליק','شيش لحمة','Shishlik'),
-    desc:L('נתחי כבש על שיפוד','قطع غنم على السيخ','Lamb chunks on a skewer') },
-  { id:'falafel', cat:'falafel', price:34, photo:'',
-    name:L('פלאפל','فلافل','Falafel'),
-    desc:L('מטוגן במקום, שמונה כדורים','يُقلى في المكان، ثمان حبات','Fried to order, eight balls') },
-  { id:'salad-box-s', cat:'salad-boxes', price:24, photo:'', tag:L('קטן','صغير','Small'), builder:false,
-    name:L('קופסת סלט קטנה','علبة سلطة صغيرة','Small salad box'),
-    desc:L('מבחר סלטים ביתיים','اختيار سلطات منزلية','House salads selection') },
-  { id:'salad-box-l', cat:'salad-boxes', price:32, photo:'', tag:L('גדול','كبير','Large'), builder:false,
-    name:L('קופסת סלט גדולה','علبة سلطة كبيرة','Large salad box'),
-    desc:L('מנה מלאה עם מגוון סלטים','حصة كاملة مع مجموعة سلطات','Full box with a variety of salads') },
-  { id:'salad-box-dahi', cat:'salad-boxes', price:30, photo:'', tag:L('קטן + דהין','صغير + دحين','Small + dahi'), builder:false,
-    name:L('קופסת סלט קטנה עם דהין','علبة سلطة صغيرة مع دحين','Small salad box with dahi'),
-    desc:L('קטן, עם דהין במרכז','صغير، مع دحين في الوسط','Small, with dahi in the middle') },
-];
+  /* prices: per serving format, from the menu board. Omit a key to hide that option. */
+  { id:'shawarma', cat:'meat', photo:'',
+    prices:{ pita:50, baguette:52, laffa:54, plate:100 },
+    name:L('שווארמה','شاورما','Shawarma'), desc:DESC_FORMATS },
+  { id:'sh-personal', cat:'meat', photo:'', tag:L('לקחת','سفري','Take-away'),
+    prices:{ plate:65 },
+    name:L('מגש שווארמה אישית','طبق شاورما شخصي','Personal shawarma tray'),
+    desc:L('מגש אישי לקחת','طبق شخصي سفري','Personal tray, to go') },
+  { id:'schnitzel', cat:'chicken', photo:'',
+    prices:{ pita:40, baguette:42, laffa:44, plate:60 },
+    name:L('שניצל','شنيتسل','Schnitzel'), desc:DESC_FORMATS },
+  { id:'chicken-breast', cat:'chicken', photo:'',
+    prices:{ pita:40, baguette:42, laffa:44, plate:60 },
+    name:L('חזה עוף','صدر دجاج','Chicken breast'), desc:DESC_FORMATS },
+  { id:'peragiot', cat:'chicken', photo:'',
+    prices:{ pita:40, baguette:42, laffa:44, plate:60 },
+    name:L('פרגיות','فراخ','Peragiot'), desc:DESC_FORMATS },
+  { id:'hearts', cat:'chicken', photo:'',
+    prices:{ pita:40, baguette:42, laffa:44, plate:58 },
+    name:L('לבבות','قلوب','Hearts'), desc:DESC_FORMATS },
+  { id:'liver', cat:'chicken', photo:'',
+    prices:{ pita:40, baguette:42, laffa:44, plate:60 },
+    name:L('כבד','كبدة','Liver'), desc:DESC_FORMATS },
+  { id:'kabab', cat:'meat', photo:'',
+    prices:{ pita:40, baguette:42, laffa:44, plate:60 },
+    name:L('קבב','كباب','Kabab'), desc:DESC_FORMATS },
+  { id:'lamb', cat:'meat', photo:'',
+    prices:{ pita:45, baguette:48, laffa:50, plate:73 },
+    name:L('כבש','لحم غنم','Lamb'), desc:DESC_FORMATS },
+  { id:'falafel', cat:'sides', photo:'',
+    prices:{ pita:25, baguette:28, laffa:30, plate:33 },
+    name:L('פלאפל','فلافل','Falafel'), desc:DESC_FORMATS },
 
-/* offered right after "add to order" */
-const SIDES = [
-  { id:'chips-s', price:12, photo:'', name:L('צ׳יפס קטן','بطاطا صغيرة','Small fries'),
-    desc:L('מנה אישית','حصة فردية','Personal portion') },
-  { id:'chips-l', price:18, photo:'', name:L('צ׳יפס גדול','بطاطا كبيرة','Large fries'),
-    desc:L('לשניים, עם מלח גס','لشخصين مع ملح خشن','For two, coarse salt') },
-  { id:'onion', price:16, photo:'', name:L('טבעות בצל','حلقات بصل','Onion rings'),
-    desc:L('שמונה טבעות פריכות','ثمان حلقات مقرمشة','Eight crisp rings') },
-  { id:'pita-tahina', price:8, photo:'', name:L('פיתה וטחינה','خبز وطحينة','Pita & tahina'),
-    desc:L('פיתה חמה בצד','خبز ساخن على جنب','Hot pita on the side') },
+  /* take-away salads & fries, from the menu board ("סלטים לקחת").
+     direct:true = added straight to the cart, no bread/salad builder. */
+  { id:'salad-quarter', cat:'sides', direct:true, price:12, photo:'', tag:TAKEAWAY,
+    name:L('רבע קופסת סלטים','ربع علبة سلطات','Quarter box of salads'), desc:DESC_TAKEAWAY },
+  { id:'salad-half', cat:'sides', direct:true, price:22, photo:'', tag:TAKEAWAY,
+    name:L('חצי קופסת סלטים','نصف علبة سلطات','Half box of salads'), desc:DESC_TAKEAWAY },
+  { id:'salad-tray-s', cat:'sides', direct:true, price:25, photo:'', tag:TAKEAWAY,
+    name:L('מגש סלטים קטן','طبق سلطات صغير','Small salad tray'), desc:DESC_TAKEAWAY },
+  { id:'salad-tray-l', cat:'sides', direct:true, price:35, photo:'', tag:TAKEAWAY,
+    name:L('מגש סלטים גדול','طبق سلطات كبير','Large salad tray'), desc:DESC_TAKEAWAY },
+  { id:'salad-tray-split', cat:'sides', direct:true, price:35, photo:'', tag:TAKEAWAY,
+    name:L('מגש סלטים מחולק','طبق سلطات مقسّم','Divided salad tray'), desc:DESC_TAKEAWAY },
+  { id:'fries-tray-s', cat:'sides', direct:true, price:22, photo:'', tag:TAKEAWAY,
+    name:L('מגש צ׳יפס קטן','طبق شيبس صغير','Small fries tray'), desc:DESC_TAKEAWAY },
+  { id:'fries-tray-l', cat:'sides', direct:true, price:35, photo:'', tag:TAKEAWAY,
+    name:L('מגש צ׳יפס גדול','طبق شيبس كبير','Large fries tray'), desc:DESC_TAKEAWAY },
 ];
 
 const DRINKS = [
-  { id:'cola', price:9, photo:'', name:L('קולה','كولا','Cola') },
-  { id:'lemonana', price:14, photo:'', name:L('לימונענע','ليمون نعناع','Lemon-mint') },
-  { id:'ayran', price:10, photo:'', name:L('איראן','عيران','Ayran') },
-  { id:'water', price:7, photo:'', name:L('מים','ماء','Water') },
-  { id:'tea', price:8, photo:'', name:L('תה נענע','شاي نعناع','Mint tea') },
-  { id:'juice', price:15, photo:'', name:L('מיץ טבעי','عصير طبيعي','Fresh juice') },
+  /* from the menu board ("שתיה") */
+  { id:'tapuzina', price:10, photo:'', name:L('תפוזינה 330 מ״ל','تفوزينا 330 مل','Tapuzina 330 ml') },
+  { id:'spring-tea', price:12, photo:'', name:L('ספרינג tea 0.5 ל׳','سبرينج تي 0.5 لتر','Spring Tea 0.5 L') },
+  { id:'spring-can', price:10, photo:'', name:L('פחית ספרינג 330 מ״ל','علبة سبرينج 330 مل','Spring can 330 ml') },
+  { id:'flavored-water', price:10, photo:'', name:L('מים בטעמים 0.5 ל׳','مياه بنكهات 0.5 لتر','Flavored water 0.5 L') },
+  { id:'schweppes-fruit', price:10, photo:'', name:L('שופס פירות 330 מ״ל','شويبس فواكه 330 مل','Schweppes fruit 330 ml') },
+  { id:'schweppes-sparkling', price:10, photo:'', name:L('שופס מוגז עדן 330 מ״ל','شويبس غازي عدن 330 مل','Schweppes sparkling Eden 330 ml') },
+  { id:'schweppes-soda', price:8, photo:'', name:L('שופס סודה 250 מ״ל','شويبس صودا 250 مل','Schweppes soda 250 ml') },
+  { id:'eden-water', price:8, photo:'', name:L('מי עדן 0.5 ל׳','مياه عدن 0.5 لتر','Eden water 0.5 L') },
+  { id:'soft-can', price:10, photo:'', name:L('פחית שתייה','علبة مشروب','Soft drink can') },
+  { id:'soft-large', price:18, photo:'', name:L('בקבוק שתייה גדול','زجاجة مشروب كبيرة','Large drink bottle') },
 ];
 
 const BREADS = [
-  { id:'laffa', extra:0, name:L('לאפה','لافة','Laffa') },
-  { id:'pita', extra:0, name:L('פיתה','خبز بيتا','Pita') },
-  { id:'baguette', extra:3, name:L('באגט','باچيت','Baguette') },
-  { id:'plate', extra:6, name:L('מגש','مقاش','In a container') },
+  { id:'pita', name:L('פיתה','خبز بيتا','Pita') },
+  { id:'baguette', name:L('באגט','باچيت','Baguette') },
+  { id:'laffa', name:L('לאפה','لافة','Laffa') },
+  { id:'plate', name:L('מגש','طبق','Plate') },
 ];
 
 const SALADS = [
@@ -126,6 +150,7 @@ const T = {
   breadQ: L('באיזה לחם?','بأي خبز؟','Which bread?'),
   required: L('חובה','إلزامي','Required'),
   noCharge: L('ללא תוספת','بدون زيادة','No charge'),
+  from: L('מ־','من ','From '),
   free: L('חינם','مجاناً','Free'),
   saladsQ: L('סלטים','سلطات','Salads'),
   saladsFree: L('עד 5 ללא תשלום','حتى 5 مجاناً','Up to 5, no charge'),
